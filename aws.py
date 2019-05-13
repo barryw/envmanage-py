@@ -6,7 +6,7 @@ from colorama import Style
 
 
 class Aws:
-    def __init__(self, region, profile, product, env):
+    def __init__(self, region, profile, product, env, format):
         if not region:
             region = os.getenv('AWS_REGION')
         if not profile:
@@ -26,8 +26,9 @@ class Aws:
         self.asg = session.client('autoscaling')
         self.ec2 = session.client('ec2')
 
-        print(f'{Fore.BLUE}PRODUCT{Style.RESET_ALL} : {Fore.GREEN}{self.product}{Style.RESET_ALL} / '
-              + f'{Fore.BLUE}ENVIRONMENT{Style.RESET_ALL} : {Fore.GREEN}{self.env}{Style.RESET_ALL}{os.linesep}')
+        if format == 'text':
+            print(f'{Fore.BLUE}PRODUCT{Style.RESET_ALL} : {Fore.GREEN}{self.product}{Style.RESET_ALL} / '
+                  + f'{Fore.BLUE}ENVIRONMENT{Style.RESET_ALL} : {Fore.GREEN}{self.env}{Style.RESET_ALL}{os.linesep}')
 
     def __path(self):
         return f'/{self.product}/{self.env}/'
