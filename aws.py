@@ -24,6 +24,7 @@ class Aws:
         session = boto3.Session(profile_name=profile)
         self.ssm = session.client('ssm')
         self.asg = session.client('autoscaling')
+        self.ec2 = session.client('ec2')
 
         print(f'{Fore.BLUE}PRODUCT{Style.RESET_ALL} : {Fore.GREEN}{self.product}{Style.RESET_ALL} / '
               + f'{Fore.BLUE}ENVIRONMENT{Style.RESET_ALL} : {Fore.GREEN}{self.env}{Style.RESET_ALL}{os.linesep}')
@@ -53,6 +54,18 @@ class Aws:
             'max': asg['MaxSize'],
             'desired': asg['DesiredCapacity'],
             'azs': asg['AvailabilityZones']
+        }
+
+    def __instance_to_hash(self, instance):
+        return {
+            'name': next(item for item in instance['Tags'] if item["Key"] == "Name")['Value'],
+            'id': instance['InstanceId'],
+            'ami': instance['ImageId'],
+            'type': instance['InstanceType'],
+            'key': instance['KeyName'],
+            'launch': instance['LaunchTime'],
+            'private_ip': instance['PrivateIpAddress'],
+            'state': instance['State']['Name']
         }
 
     def __asg_in_env(self, asg):
@@ -87,6 +100,47 @@ class Aws:
         except Exception as e:
             print(e)
 
+    def get_instances(self):
+        """
+        Retrieve a list of instances associated with this product/environment
+        :return:
+        """
+        next_token = None
+        instances = []
+
+        filters = [
+            {
+                'Name': 'tag:Environment',
+                'Values': [self.env]
+            },
+            {
+                'Name': 'tag:Product',
+                'Values': [self.product]
+            }
+        ]
+
+        try:
+            while True:
+                if next_token:
+                    response = self.ec2.describe_instances(Filters=filters, NextToken=next_token)
+                else:
+                    response = self.ec2.describe_instances(Filters=filters)
+
+                if 'Reservations' in response and len(response['Reservations']) > 0:
+                    for reservations in response['Reservations']:
+                        if 'Instances' in reservations:
+                            for instance in reservations['Instances']:
+                                instances.append(self.__instance_to_hash(instance))
+
+                if 'NextToken' in response:
+                    next_token = response['NextToken']
+                else:
+                    break
+        except Exception as e:
+            print(e)
+
+        return instances
+
     def get_asgs(self):
         """
         Retrieve a list of autoscaling groups associated with this product/environment
@@ -111,11 +165,10 @@ class Aws:
                     next_token = response['NextToken']
                 else:
                     break
-
-            return asgs
         except Exception as e:
             print(e)
-            return {}
+
+        return asgs
 
     def show_k8s_dashboard(self):
         """

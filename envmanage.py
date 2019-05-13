@@ -1,8 +1,11 @@
+import os
 import click
 
 from aws import Aws
 from colorama import Fore
 from colorama import Style
+from dateutil import tz
+import time
 
 
 @click.group()
@@ -78,7 +81,7 @@ def scale_up(ctx, asg, min, max, desired):
 @click.option('-max', help='The max value for the autoscaling group', default=0)
 @click.option('-desired',help='The desired value for the autoscaling group',default=0)
 @click.pass_context
-def scale_up(ctx, asg, min, max, desired):
+def scale_down(ctx, asg, min, max, desired):
     aws = ctx.obj['AWS']
     aws.scale_asg(asg, min, max, desired)
 
@@ -87,6 +90,20 @@ def scale_up(ctx, asg, min, max, desired):
 @click.pass_context
 def show_env(ctx):
     aws = ctx.obj['AWS']
+
+    zone = tz.gettz(time.tzname[0])
+    print(f'{Fore.GREEN}Instances{Style.RESET_ALL}{os.linesep}')
+    print('{:<35}{:<23}{:<15}{:<15}{:<27}{:<10}'.format('Name', 'Instance ID', 'Private IP', 'Type', 'Launch Time',
+                                                        'State'))
+    print('{:<35}{:<23}{:<15}{:<15}{:<27}{:<10}'.format('----','-----------', '----------', '----', '-----------',
+                                                        '-----'))
+    instances = aws.get_instances()
+    for instance in instances:
+        print('{:<35}{:<23}{:<15}{:<15}{:<27}{:<10}'.format(instance['name'], instance['id'], instance['private_ip'],
+                                                            instance['type'], instance['launch'].astimezone(zone).isoformat(),
+                                                            instance['state']))
+
+    print(f'{os.linesep}{Fore.GREEN}AutoScaling Groups{Style.RESET_ALL}{os.linesep}')
     print('{:<65}{:<5}{:<5}{:<10}{:<10}{:<10}'.format("Name", "Min", "Max", "Desired", "Instances", "Status"))
     print('{:<65}{:<5}{:<5}{:<10}{:<10}{:<10}'.format("----", "---", "---", "-------", "---------", "------"))
     asgs = aws.get_asgs()
