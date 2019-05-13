@@ -2,6 +2,7 @@
   <dictionary name="barry">
     <words>
       <w>autoscaling</w>
+      <w>kubeconfig</w>
     </words>
   </dictionary>
 </component>

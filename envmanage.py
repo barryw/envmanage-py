@@ -1,5 +1,6 @@
 import os
 import click
+from click import UsageError
 
 from aws import Aws
 from colorama import Fore
@@ -9,14 +10,44 @@ import time
 
 
 @click.group()
-@click.option('-p', '--product', envvar='PRODUCT', help='The product to operate on (defaults to $PRODUCT)')
-@click.option('-e', '--env', envvar='ENV', help='The environment to operate on (defaults to $ENV)')
-@click.option('-b', '--profile', envvar='AWS_PROFILE', help='The AWS profile to use (defaults to $AWS_PROFILE)')
-@click.option('-r', '--region', envvar='AWS_REGION', help='The AWS region to use (defaults to $AWS_REGION)')
+@click.option('-p', '--product', default=os.getenv('PRODUCT'), envvar='PRODUCT', help='The product to operate on',
+              show_default=True)
+@click.option('-e', '--env', default=os.getenv('ENV'), envvar='ENV', help='The environment to operate on',
+              show_default=True)
+@click.option('-b', '--profile', default=os.getenv('AWS_PROFILE'), envvar='AWS_PROFILE', help='The AWS profile to use ',
+              show_default=True)
+@click.option('-r', '--region', default=os.getenv('AWS_REGION'), envvar='AWS_REGION', help='The AWS region to use',
+              show_default=True)
 @click.option('-f', '--format', default='text', envvar='ENVMANAGE_FORMAT', help='The format to output in',
-              type=click.Choice(['text', 'json']))
+              type=click.Choice(['text', 'json']), show_default=True)
 @click.pass_context
 def cli(ctx, product, env, profile, region, format):
+    """
+    This CLI can be used to manage products and environments conforming to a set of standards. The deployments should
+    have set the following tags on their resources:
+
+    Product: The name of the deployed product (eg. my-awesome-product)
+    Environment: The discrete environment for the product (eg. dev, qa, stg, prod)
+
+    To work with your products and environments, you will either need to set some environment variables or pass in some
+    command line switches. The easiest way is to create a set of shell scripts that you can source in to set the
+    appropriate environment variables for a product/environment. For example, you could have a shell script named
+    foo-dev.sh containing the following:
+
+    #!/bin/bash
+
+    export PRODUCT=foo\n
+    export ENV=dev\n
+    export AWS_PROFILE=foo-dev-profile (this is the profile name from ~/.aws/credentials)\n
+    export AWS_REGION=us-west-2\n
+    export KUBECONFIG=/home/joesmith/Git/Phoenix/terraform/products/foo/kubeconfig_v2-dev\n
+
+    Source this script in before working with this CLI, and all commands executed will take effect against the product /
+    environment specified by the environment variables.
+
+    If your product uses Kubernetes, make sure that KUBECONFIG is set to the location of your environment's kubeconfig
+    file. This will allow you to run the show-dashboard command to open the Kubernetes dashboard for your product.
+    """
     aws = Aws(region, profile, product, env, format)
     ctx.obj['AWS'] = aws
     ctx.obj['FORMAT'] = format
@@ -71,7 +102,10 @@ def delete_secret(ctx, name):
 @click.pass_context
 def show_dashboard(ctx):
     aws = ctx.obj['AWS']
-    aws.show_k8s_dashboard()
+    kubeconfig = os.getenv('KUBECONFIG', '')
+    if not kubeconfig:
+        raise UsageError("You need to set your KUBECONFIG env var to the path to your product/environment's kube config")
+    aws.show_k8s_dashboard(kubeconfig)
 
 
 @cli.command(help="Scale an environment up")
