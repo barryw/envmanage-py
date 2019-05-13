@@ -64,7 +64,7 @@ class Aws:
             'type': instance['InstanceType'],
             'key': instance['KeyName'],
             'launch': instance['LaunchTime'],
-            'private_ip': instance['PrivateIpAddress'],
+            'private_ip': instance['PrivateIpAddress'] if 'PrivateIpAddress' in instance else '',
             'state': instance['State']['Name']
         }
 

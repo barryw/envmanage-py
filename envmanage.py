@@ -103,7 +103,7 @@ def show_env(ctx):
                                                             instance['type'], instance['launch'].astimezone(zone).isoformat(),
                                                             instance['state']))
 
-    print(f'{os.linesep}{Fore.GREEN}AutoScaling Groups{Style.RESET_ALL}{os.linesep}')
+    print(f'{os.linesep * 2}{Fore.GREEN}AutoScaling Groups{Style.RESET_ALL}{os.linesep}')
     print('{:<65}{:<5}{:<5}{:<10}{:<10}{:<10}'.format("Name", "Min", "Max", "Desired", "Instances", "Status"))
     print('{:<65}{:<5}{:<5}{:<10}{:<10}{:<10}'.format("----", "---", "---", "-------", "---------", "------"))
     asgs = aws.get_asgs()
