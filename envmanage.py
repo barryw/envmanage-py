@@ -1,6 +1,6 @@
 import os
 import click
-from click import UsageError
+from click import UsageError, ClickException
 
 from aws import Aws
 from colorama import Fore
@@ -72,6 +72,10 @@ def list_secrets(ctx):
 def show_secret(ctx, name):
     aws = ctx.obj['AWS']
     secret = aws.get_secret(name)
+
+    if secret == {}:
+        raise ClickException("No parameter with that name was found.")
+
     if ctx.obj['FORMAT'] == 'json':
         print(secret)
     else:
@@ -82,7 +86,7 @@ def show_secret(ctx, name):
 @cli.command(help="Set a secret's value")
 @click.option('-n', '--name', help='The name of the secret to set', required=True)
 @click.option('-v', '--value', help='The value to set the secret to', required=True)
-@click.option('--encrypt', is_flag=True, help='Whether to create an encrypted secret', default=True)
+@click.option('-encrypt/-no-encrypt', is_flag=True, help='Whether to create an encrypted secret', default=True)
 @click.pass_context
 def set_secret(ctx, name, value, encrypt):
     aws = ctx.obj['AWS']
