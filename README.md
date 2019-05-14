@@ -36,7 +36,7 @@ export PRODUCT=foo
 export ENV=dev
 export AWS_PROFILE=foo-dev-aws (this is a profile from ~/.aws/credentials)
 export AWS_REGION=us-west-2
-export KUBECONFIG=/Users/barry/Customers/BuildingEngines/Git/Cumulus/terraform/products/v2/orchestrator/kubeconfig_v2-dev
+export KUBECONFIG=/home/joedirt/infrastructure/products/foo/kubeconfig_v2-dev
 ```
 
 Source that file in with `source foo-dev.sh`
