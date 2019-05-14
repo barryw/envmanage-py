@@ -95,6 +95,19 @@ To scale up:
 
 The default scale up values will bring an environment to a min/max/desired of 1
 
+
+##### Kubernetes
+
+If your environment runs on Kubernetes, you can bring up the kubernetes dashboard by setting the value of `KUBECONFIG` to point to the location of your environment's kubeconfig file and then run:
+
+```bash
+./envmanage show-dashboard
+```
+
+It will use your default browser to open the dashboard, but will probably require you to log in. If so, copy the token that's shown after that command is run and enter it into the login page for the Kubernetes dashboard.
+
+__NOTE__: If you've scaled your environment down to 0 nodes, your dashboard will NOT work!
+
 #### License
 
 You are free to use this code for your own purposes, but I retain copyright to it.
