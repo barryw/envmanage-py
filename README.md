@@ -110,6 +110,4 @@ __NOTE__: If you've scaled your environment down to 0 nodes, your dashboard will
 
 #### License
 
-You are free to use this code for your own purposes, but I retain copyright to it.
-
-Copyright © 2019 by Barry Walker. All Rights Reserved.
+This code is licensed under the MIT license: https://opensource.org/licenses/MIT
