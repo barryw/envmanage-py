@@ -49,6 +49,16 @@ This CLI allows you to view your environment's autoscaling groups + instances, s
 
 By default, the CLI will output results in text format. If you'd like to return JSON, either set the environment variable `ENVMANAGE_FORMAT=json` or use the -f/--format parameter.
 
+Instead of using environment variables, you can specify options as switches:
+```
+-p/--product = $PRODUCT
+-e/--env = $ENV
+-b/--profile = $AWS_PROFILE
+-r/--region = $AWS_REGION
+-f/--format = $ENVMANAGE_FORMAT
+-k/--kubeconfig = $KUBECONFIG
+```
+
 ##### Secrets
 
 To view your environment's secrets:
