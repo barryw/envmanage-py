@@ -8,6 +8,8 @@ from colorama import Style
 from dateutil import tz
 import time
 
+from kubernetes import Kubernetes
+
 
 @click.group()
 @click.option('-p', '--product', default=os.getenv('PRODUCT'), envvar='PRODUCT', help='The product to operate on',
@@ -20,8 +22,9 @@ import time
               show_default=True)
 @click.option('-f', '--format', default='text', envvar='ENVMANAGE_FORMAT', help='The format to output in',
               type=click.Choice(['text', 'json']), show_default=True)
+@click.option('-k', '--kubeconfig', envvar='KUBECONFIG', help='The path to your kube config file.')
 @click.pass_context
-def cli(ctx, product, env, profile, region, format):
+def cli(ctx, product, env, profile, region, format, kubeconfig):
     """
     This CLI can be used to manage products and environments conforming to a set of standards. The deployments should
     have set the following tags on their resources:
@@ -49,8 +52,10 @@ def cli(ctx, product, env, profile, region, format):
     file. This will allow you to run the show-dashboard command to open the Kubernetes dashboard for your product.
     """
     aws = Aws(region, profile, product, env, format)
+    kube = Kubernetes(kubeconfig)
     ctx.obj['AWS'] = aws
     ctx.obj['FORMAT'] = format
+    ctx.obj['KUBE'] = kube
 
 
 @cli.command(help="Show a list of all secrets for an environment")
@@ -105,11 +110,12 @@ def delete_secret(ctx, name):
                   + "your environment's kubeconfig file)")
 @click.pass_context
 def show_dashboard(ctx):
-    aws = ctx.obj['AWS']
-    kubeconfig = os.getenv('KUBECONFIG', '')
-    if not kubeconfig:
-        raise UsageError("You need to set your KUBECONFIG env var to the path to your product/environment's kube config")
-    aws.show_k8s_dashboard(kubeconfig)
+    kube = ctx.obj['KUBE']
+    if not kube.kubeconfig:
+        raise UsageError("You need to either set your KUBECONFIG env var or use the -k option to the path to your "
+                         + "product/environment's kube config")
+
+    kube.show_dashboard()
 
 
 @cli.command(help="Scale an environment up")
